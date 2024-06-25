@@ -1,0 +1,109 @@
+{
+    "title": "Exploring Search Design and Pipeline Integration",
+    "id": "Mlxxw0PAr39OO/9xMuOB1ul8iCi1zh4SjFM7JgKc9aU=",
+    "steps": [
+        {
+            "type": "textOnly",
+            "description": "Welcome to this code tour on the search functionality in our REST API framework. Our goal is to explore how search is designed and integrated into the main pipeline. The search feature is a powerful component that allows clients to perform complex queries on API resources using a flexible syntax. This capability enhances the usability and efficiency of our API, enabling clients to retrieve precisely the data they need.\n\nIn this tour, we'll cover:\n1. The overall architecture of the search feature\n2. Core components involved in search processing\n3. How search integrates with the main request processing pipeline\n4. Key classes and their responsibilities\n5. The flow of a search request through the system\n\nAs an experienced Java developer, you'll find that our implementation follows solid object-oriented design principles and leverages Java's strengths in building robust, scalable systems.",
+            "title": "",
+            "id": "1849"
+        },
+        {
+            "type": "textOnly",
+            "description": "Before we dive into the code, let's introduce the core components of our search feature:\n\n1. Query Parser: Responsible for parsing the search query string into a structured format that our system can process.\n\n2. Search Criteria: Represents the parsed search query in a form that can be easily manipulated and applied to our data models.\n\n3. Search Processor: Applies the search criteria to the data, filtering and sorting results as specified in the query.\n\n4. Result Formatter: Prepares the search results for transmission back to the client, handling pagination and any required data transformations.\n\n5. Search Integration Point: The component that integrates the search functionality into the main request processing pipeline.\n\nIn the following steps, we'll examine each of these components in detail, starting with the entry point of a search request in our system. We'll see how these components work together to provide a seamless and efficient search experience.",
+            "title": "",
+            "id": "1850"
+        },
+        {
+            "type": "highlight",
+            "description": "Let's begin by examining the Search class, which is the core component for representing search queries. This class extends ArrayList<SearchCondition>, allowing it to store multiple search conditions. It provides methods for adding search conditions and supports a fluent API design.",
+            "file": "common/src/main/java/com/seregamorph/restapi/search/Search.java",
+            "highlight": [
+                {
+                    "start": 9,
+                    "end": 42
+                }
+            ],
+            "title": "",
+            "id": "1841"
+        },
+        {
+            "type": "highlight",
+            "description": "The SearchCondition interface is a marker interface for search conditions. It has two main implementations: SingleSearchCondition for individual conditions and SearchConditionGroup for grouped conditions. Let's look at the SingleSearchCondition class, which represents a single search criterion with a field, operator, and value.",
+            "file": "common/src/main/java/com/seregamorph/restapi/search/SingleSearchCondition.java",
+            "highlight": [
+                {
+                    "start": 15,
+                    "end": 75
+                }
+            ],
+            "title": "",
+            "id": "1842"
+        },
+        {
+            "type": "highlight",
+            "description": "Search operations are defined by the SearchOperator enum. This enum includes various comparison operators like EQUAL, NOT_EQUAL, LESS_THAN, etc. Each operator has properties that define its behavior, such as whether it supports multiple values or special values.",
+            "file": "common/src/main/java/com/seregamorph/restapi/search/SearchOperator.java",
+            "highlight": [
+                {
+                    "start": 9,
+                    "end": 48
+                }
+            ],
+            "title": "",
+            "id": "1843"
+        },
+        {
+            "type": "highlight",
+            "description": "The SearchArgumentResolver class is a crucial component in converting raw search strings into structured Search objects. It works in conjunction with other utility classes to handle the parsing of complex search clauses, including nested conditions and logical operators.\n\n1. SearchArgumentResolver:\n   - Converts raw search strings into Search objects\n   - Handles complex search clauses and nested conditions\n   - Uses SearchArgumentParser to parse individual search values\n\n2. SearchParamUtils:\n   - Assists in finding and validating search fields defined in @SearchParam annotations\n   - Used by SearchArgumentResolver to process default search fields\n\n3. SearchValueConverter:\n   - Converts raw string values to appropriate data types based on field definitions\n   - Handles both single and multiple value conversions\n   - Supports special values (e.g., NULL, EMPTY, BLANK) for certain operators\n\nThe process flow is as follows:\n1. SearchArgumentResolver receives raw search strings and @SearchParam annotation\n2. It iterates through search values, using SearchArgumentParser to parse each value\n3. For each parsed value, it creates appropriate SearchCondition objects\n4. If no search values are provided, it processes default search fields using SearchParamUtils\n5. For each field (default or user-provided), it uses SearchValueConverter to convert values to the correct data type\n6. Finally, it constructs and returns a Search object containing all processed conditions\n\nThis design allows for flexible and powerful search capabilities that seamlessly integrate with Spring MVC-based APIs, providing a robust solution for complex querying needs.",
+            "file": "spring/src/main/java/com/seregamorph/restapi/search/SearchArgumentResolver.java",
+            "highlight": [
+                {
+                    "start": 8,
+                    "end": 67
+                }
+            ],
+            "title": "",
+            "id": "1844"
+        },
+        {
+            "type": "highlight",
+            "description": "The SearchHandlerMethodArgumentResolver class integrates the search functionality with Spring MVC. It resolves method arguments annotated with @SearchParam in controller methods, allowing the framework to automatically parse and inject Search objects.",
+            "file": "spring/src/main/java/com/seregamorph/restapi/resolvers/SearchHandlerMethodArgumentResolver.java",
+            "highlight": [
+                {
+                    "start": 17,
+                    "end": 32
+                }
+            ],
+            "title": "",
+            "id": "1845"
+        },
+        {
+            "type": "highlight",
+            "description": "Let's examine how the search functionality is implemented in a controller, demonstrating the full cycle of a search request. The SearchController shows how to define searchable fields, process search requests, and return search results.\n\nKey points to note:\n1. The @SearchParam annotation defines the searchable fields and their types.\n2. The Search object is automatically resolved from the request parameters.\n3. The controller delegates the actual search operation to a SearchService.\n4. The search results are processed and returned as a Search object.\n\nThis example illustrates how the search functionality seamlessly integrates with Spring MVC, handling the entire process from receiving a search request to returning the results:\n\n1. The @GetMapping annotation maps the GET request to this method.\n2. The @SearchParam annotation configures the searchable fields, their types, and default search conditions.\n3. The Search object is automatically populated by the SearchHandlerMethodArgumentResolver we saw earlier.\n4. The searchService.updateMappedField(result) call likely applies any necessary transformations or validations to the search conditions.\n5. Finally, the processed Search object is returned, which Spring will automatically convert to JSON in the response.\n\nThis design allows for a clean separation of concerns: the controller handles request mapping and parameter resolution, while the actual search logic is encapsulated in the SearchService. This approach makes the code more maintainable and testable, which is crucial for experienced Java developers working on large-scale applications.",
+            "file": "demo/demo-boot23/src/main/java/com/seregamorph/restapi/demo/controllers/SearchController.java",
+            "highlight": [
+                {
+                    "start": 21,
+                    "end": 61
+                }
+            ],
+            "title": "",
+            "id": "1846"
+        },
+        {
+            "type": "highlight",
+            "description": "The SearchMatcherUtils class contains the logic for evaluating whether a value matches a given search condition. It supports various comparison operations and handles different data types.",
+            "file": "common/src/main/java/com/seregamorph/restapi/search/SearchMatcherUtils.java",
+            "highlight": [
+                {
+                    "start": 10,
+                    "end": 129
+                }
+            ],
+            "title": "",
+            "id": "1847"
+        }
+    ]
+}
